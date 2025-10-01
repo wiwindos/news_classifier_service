@@ -8,7 +8,9 @@ from news_classifier import train_classifier
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Train a Russian news classifier")
+    parser = argparse.ArgumentParser(
+        description="Train a binary Russian news classifier (economics vs other)"
+    )
     parser.add_argument("data_path", type=Path, help="Path to CSV file with training data")
     parser.add_argument(
         "--text-column",
@@ -56,6 +58,25 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.1,
         help="Learning rate for CatBoost",
     )
+    parser.add_argument(
+        "--positive-label",
+        action="append",
+        dest="positive_labels",
+        help=(
+            "Synonyms (case-insensitive) that should be mapped to the Economics class. "
+            "Can be provided multiple times."
+        ),
+    )
+    parser.add_argument(
+        "--positive-class-name",
+        default="Экономика",
+        help="Name of the positive class shown in reports and predictions",
+    )
+    parser.add_argument(
+        "--negative-class-name",
+        default="Не экономика",
+        help="Name of the negative class shown in reports and predictions",
+    )
     return parser
 
 
@@ -73,6 +94,9 @@ def main() -> None:
         random_state=args.random_state,
         iterations=args.iterations,
         learning_rate=args.learning_rate,
+        positive_labels=args.positive_labels,
+        positive_class=args.positive_class_name,
+        negative_class=args.negative_class_name,
     )
 
     print("Training finished successfully!")

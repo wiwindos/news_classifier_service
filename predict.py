@@ -8,7 +8,9 @@ from news_classifier import NewsClassifier
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Predict news category")
+    parser = argparse.ArgumentParser(
+        description="Predict whether the news belongs to the Economics category"
+    )
     parser.add_argument(
         "artifacts_dir",
         type=Path,
@@ -23,7 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--top-k",
         type=int,
         default=3,
-        help="Show top-k most probable categories",
+        help="Show top-k most probable classes",
     )
     return parser
 
@@ -33,11 +35,18 @@ def main() -> None:
     args = parser.parse_args()
 
     classifier = NewsClassifier(args.artifacts_dir)
+    prediction = classifier.predict([args.text])[0]
     probabilities = classifier.predict_proba([args.text])[0]
     labels = classifier.labels
+    probability_map = dict(zip(labels, probabilities))
+
+    print(f"Ответ: {prediction}")
+    if prediction in probability_map:
+        print(f"Вероятность класса \"{prediction}\": {probability_map[prediction]:.4f}")
+
     paired = sorted(zip(labels, probabilities), key=lambda item: item[1], reverse=True)
 
-    print("Most probable categories:")
+    print("Распределение вероятностей:")
     for label, prob in paired[: args.top_k]:
         print(f"  {label}: {prob:.4f}")
 
