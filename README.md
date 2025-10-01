@@ -1,132 +1,62 @@
-# Russian news classifier
+# Russian News Classifier (CLI)
 
-# RU
+Минимизированная версия проекта для обучения и использования классификатора новостей без Docker и веб-интерфейса.
 
-### 1. Введение
------
+## Возможности
 
-Целью проекта является создание системы классификации новостных заголовков
+- Обучение модели на собственном CSV-файле с новостями и категориями
+- Предсказание категории для новой новости из командной строки
+- Хранение артефактов обучения (`model.cbm`, `vectorizer.pkl`, `label_encoder.pkl`, отчёт по качеству)
 
-В качестве новостных заголовков и категорий используется [датасет Lenta.ru](https://www.kaggle.com/datasets/yutkin/corpus-of-russian-news-articles-from-lenta)
+## Установка
 
-Целевая метрика при обучении F1-macro (~0.63)
+1. Создайте и активируйте виртуальное окружение.
+2. Установите зависимости:
 
-### 2. Структура проекта
------
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-- `api`: содержит back-часть системы, включая сам классификатор (TF-IDF + CatBoost), завернутый в FastAPI, коннектор к MongoDB
-- `artifacts`: содержит модель и декодер категорий новостей
-- `notebooks` содержит скрипты исследования (.py формата):
-  - `src`: готовые классы / утилиты для исследований
-  - `data_preprocessing.py`: преобразование новостей в удобный формат для исследования
-  - `tf_idf_logreg.py`: пайплайн с помощью TF-IDF + LogReg (OneVsAll classifier)
-  - `tf_idf_catboost.py`: пайплайн с помощью TF-IDF + CatBoost
-- `web`: содержит web-часть системы (простой интерфейс с отображением)
+3. При первом запуске будут автоматически загружены русские стоп-слова NLTK.
 
+## Подготовка данных
 
-### 3. Установка и запуск системы
------
+Ожидаемый формат входного CSV:
 
-Убедитесь, что у Вас установлен Docker на локальной машине. В случае отсутствия, перейдите
-[сюда](https://docs.docker.com/get-docker/) и проследуйте по инструкции.
-Затем перейдите в командую строку и выполните следующие команды:
+- столбец с текстом новости (по умолчанию `title`)
+- столбец с категорией (по умолчанию `topic`)
 
-1. <code>git clone https://github.com/unkmlenjoyer/news_classificator_service.git</code>
-2. Перейдите в каталог `/api`
-3. Создайте `.env` файл с 4 переменными:
+Любые другие названия можно передать через параметры `--text-column` и `--target-column`.
 
-    `APP_HOST`=0.0.0.0
-   
-    `APP_PORT`=5050
-   
-    `DB_CONTAINER_NAME`=news_db
-   
-    `DB_PORT`=27017
+## Обучение модели
 
-5. Вернитесь на уровень выше и выполните следующую команду
+```bash
+python train.py path/to/dataset.csv \
+  --text-column title \
+  --target-column topic \
+  --output-dir artifacts
+```
 
-   <code>docker compose up --build</code>
+После завершения обучения будут сохранены артефакты и отчёт `classification_report.json` с метриками и сопоставлением индексов категориям.
 
-6. Теперь можно перейти в web-интерфейс системы:
+## Предсказание категории
 
-   `localhost:3000`
+```bash
+python predict.py artifacts --text "В Москве построили новый парк" --top-k 5
+```
 
-   Доступ к API: `localhost:5050`
+Скрипт выведет наиболее вероятные категории и их вероятности.
 
+## Структура проекта
 
-### 4. Пример использования
------
+```
+├── artifacts/          # директория для сохранения артефактов (пустая)
+├── news_classifier/    # пакет с кодом обучения и инференса
+├── predict.py          # CLI для получения предсказаний
+├── requirements.txt    # зависимости для локального запуска
+└── train.py            # CLI для обучения
+```
 
-На главном экране достаточно ввести необходимый текст и нажать кнопку "Предсказать категорию".
+## Обновление категорий
 
-После нажатия слева появится таблица категорий и значений оценок.
-
-![Первый заход](docs/images/service_exp_1.png)
-
-Предыдущие 10 запросов на предсказание можно просмотреть прямо на данной странице: достаточно кликнуть на "Показать историю запросов"
-
-![Второй заход](docs/images/service_exp_2.png)
-
-
-# EN
-
-### 1. Intro
------
-
-The aim of the project is to create a classification system for news headlines
-
-The following [Lenta.ru dataset](https://www.kaggle.com/datasets/yutkin/corpus-of-russian-news-articles-from-lenta) is used for training.
-
-Target metric for training is F1-macro (~ 0.63)
-
-### 2. Project structure
------
-
-- `api`: back part of service: api with classificator (Fast API, TF-IDF + CatBoost), MongoDB connector.
-- `artifacts`: model and category decoder
-- `notebooks`: research scripts
-  - `src`: research classes & utils
-  - `data_preprocessing.py`: data transforming into special form for training
-  - `tf_idf_logreg.py`: training pipeline with TF-IDF & LogReg (OneVsAll classifier)
-  - `tf_idf_catboost.py`: training pipeline with TF-IFD & CatBoost
-- `web`: simple React web-app
-
-
-### 3. Installation
------
-
-Be sure that Docker is installed on your local machine. If not, go [there](https://docs.docker.com/get-docker/) and do following instructions. Then go to command line and execute commands:
-
-1. <code>git clone https://github.com/unkmlenjoyer/news_classificator_service.git</code>
-2. Go to `/api` folder
-3. Create `.env` file with two variables (without symbols <>)
-
-    `APP_HOST`=0.0.0.0
-   
-    `APP_PORT`=5050
-   
-    `DB_CONTAINER_NAME`=news_db
-   
-    `DB_PORT`=27017
-
-5. Then get back to main directory and run:
-
-   <code>docker compose up --build</code>
-
-6. Now you can visit web-part of service:
-
-   `localhost:3000`
-
-   API: `localhost:5050`
-
-
-### 4. Examples of usage
------
-
-On the main page you can paste text of news headline and press "Предсказать категорию" button.
-
-![First request](docs/images/service_exp_1.png)
-
-The last 10 requests can be viewed by clicking on the button "Показать историю запросов".
-
-![Second request](docs/images/service_exp_2.png)
+Запустите обучение на новом датасете с нужными категориями. Модель автоматически переобучится и сохранит новую карту меток.
