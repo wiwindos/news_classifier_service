@@ -7,7 +7,7 @@ from typing import List
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import WordPunctTokenizer
-from pymorphy2 import MorphAnalyzer
+from pymorphy3 import MorphAnalyzer
 
 
 def _ensure_stopwords_downloaded() -> None:
