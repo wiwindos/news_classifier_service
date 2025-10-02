@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--max-features",
         type=int,
-        default=15000,
+        default=10000,
         help="Maximum number of features for the TF-IDF vectorizer",
     )
     parser.add_argument(
@@ -49,7 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--iterations",
         type=int,
-        default=500,
+        default=400,
         help="Number of boosting iterations for CatBoost",
     )
     parser.add_argument(
